@@ -249,7 +249,22 @@ class CnOcr(object):
         line_img_list = [line_img for line_img, _ in line_imgs]
         line_chars_list = self.ocr_for_single_lines(line_img_list)
         return line_chars_list
-
+    def ocr_mem(self, img_buff):
+        """
+        :param img_fp: image file path; or color image mx.nd.NDArray or np.ndarray,
+            with shape (height, width, 3), and the channels should be RGB formatted.
+        :return: List(List(Char)), such as:
+            [['第', '一', '行'], ['第', '二', '行'], ['第', '三', '行']]
+        """
+        img = mx.image.imdecode(img_buff).asnumpy()
+        if min(img.shape[0], img.shape[1]) < 2:
+            return ''
+        if img.mean() < 145:  # 把黑底白字的图片对调为白底黑字
+            img = 255 - img
+        line_imgs = line_split(img, blank=True)
+        line_img_list = [line_img for line_img, _ in line_imgs]
+        line_chars_list = self.ocr_for_single_lines(line_img_list)
+        return line_chars_list
     def ocr_for_single_line(self, img_fp):
         """
         Recognize characters from an image with only one-line characters.
